@@ -29,6 +29,8 @@ from transformers import CLIPTokenizer
 import tensorrt as trt
 from utilities import Engine, DPMScheduler, LMSDiscreteScheduler, save_image, TRT_LOGGER
 
+from onnxruntime.transformers.benchmark_helper import measure_memory
+
 def parseArgs():
     parser = argparse.ArgumentParser(description="Options for Stable Diffusion Demo")
     # Stable Diffusion configuration
@@ -360,7 +362,6 @@ class DemoDiffusion:
 
             # Concatenate the unconditional and text embeddings into a single batch to avoid doing two forward passes for classifier free guidance
             text_embeddings = torch.cat([uncond_embeddings, text_embeddings])
-
             if self.denoising_fp16:
                 text_embeddings = text_embeddings.to(dtype=torch.float16)
 
@@ -497,5 +498,10 @@ if __name__ == "__main__":
     images = demo.infer(prompt, negative_prompt, image_height, image_width, verbose=args.verbose)
     if args.nvtx_profile:
         cudart.cudaProfilerStop()
+
+    # Measure memory usage
+    print("Measuring memory usage. Ignore any latency metrics or any images saved.")
+    measure_memory(is_gpu=True, func=lambda: demo.infer(prompt, negative_prompt, image_height, image_width, verbose=args.verbose))
+    print("Measured memory usage.")
 
     demo.teardown()

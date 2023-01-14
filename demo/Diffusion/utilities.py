@@ -530,7 +530,7 @@ def save_image(images, image_path_dir, image_name_prefix):
     """
     Save the generated images to png files.
     """
-    images = ((images + 1) * 255 / 2).clamp(0, 255).detach().permute(0, 2, 3, 1).round().type(torch.uint8).cpu().numpy()
+    images = ((images + 1) * 255 / 2).float().clamp(0, 255).detach().permute(0, 2, 3, 1).round().type(torch.uint8).cpu().numpy()
     for i in range(images.shape[0]):
         image_path  = os.path.join(image_path_dir, image_name_prefix+str(i+1)+'-'+str(random.randint(1000,9999))+'.png')
         print(f"Saving image {i+1} / {images.shape[0]} to: {image_path}")
